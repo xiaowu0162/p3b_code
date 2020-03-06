@@ -1,4 +1,7 @@
 #!/usr/bin/python
+# NAME: Di Wu,Jingnong Qu
+# EMAIL: xiaowu200031@gmail.com,andrewqu2000@g.ucla.edu
+# ID: 205117980,805126509
 
 import sys
 
