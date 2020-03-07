@@ -3,9 +3,14 @@ EMAIL: xiaowu200031@gmail.com,andrewqu2000@g.ucla.edu
 ID: 205117980,805126509
 
 File descriptions:
-lab3b.py: a python source 
-Makefile: the file that builds everything. The Makefile includes a default target that builds the lab3a program, a dist target that generates the submission file, and a clean target that cleans up. 
-README: this file, an introduction of our lab 3A submission.
+lab3b.py: a python source file that analyzes the csv output of a file system examination (similar to output of lab 3a). The program takes the csv file as command line argument and checks for block consistencies, inode allocations, and directory consistencies. Errors found by the program are reported to stdout. 
+Makefile: the file that builds everything. The Makefile includes a default target that creates a link to the executable script, a dist target that generates the submission file, and a clean target that cleans up. 
+README: this file, an introduction of our lab 3B submission.
 
 References:
+We mainly referred to python man pages for the APIs used in the assignment. Different from what we did for the last lab, we defined and furnished our own data structures and used them for inference. We relied on the sample error outputs provided on the lab3a specification page to check for our program's correctness. In addition, we modified several test cases to perform more checks.
 https://stackoverflow.com/questions/12905999/python-dict-how-to-create-key-or-append-an-element-to-key
+https://realpython.com/convert-python-string-to-int/
+https://docs.python.org/2/library/string.html
+https://docs.python.org/3/library/functions.html#open
+
