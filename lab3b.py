@@ -36,7 +36,12 @@ class Inode:
             self.link_count = int(info_list[6])
             self.file_size = int(info_list[10])
             self.n_blocks = int(info_list[11])
+            self.block_list = []
+            if self.file_type is 'd' or self.file_type is 'f':
+                for i in range(15):
+                    self.block_list.append(info_list[12+i])
 
+            
 class Dirent:
     def __init__(self, info_list):
         if info_list is not None:
@@ -46,7 +51,7 @@ class Dirent:
             self.entry_length = int(info_list[4])
             self.name_length = int(info_list[5])            
             self.name = info_list[6]
-
+        
 
 def main():
     # parse arguments
@@ -87,7 +92,6 @@ def main():
             inodes[int(line[1])] = Inode(line)
         if line[0] == 'DIRENT':
             dirents.append(Dirent(line))
-
 
 
     # TO-DO: determine exit code 
