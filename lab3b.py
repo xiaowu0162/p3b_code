@@ -34,9 +34,14 @@ class Inode:
             self.i_number = int(info_list[1])
             self.file_type = info_list[2]
             self.link_count = int(info_list[6])
-             self.file_size = int(info_list[10])
+            self.file_size = int(info_list[10])
             self.n_blocks = int(info_list[11])
+            self.block_list = []
+            if self.file_type is 'd' or self.file_type is 'f':
+                for i in range(15):
+                    self.block_list.append(info_list[12+i])
 
+            
 class Dirent:
     def __init__(self, info_list):
         if info_list is not None:
@@ -46,9 +51,10 @@ class Dirent:
             self.entry_length = int(info_list[4])
             self.name_length = int(info_list[5])            
             self.name = info_list[6]
-
+        
 
 def main():
+    error_count = 0
     # parse arguments
     args = sys.argv
     if len(args) is not 2:
@@ -75,27 +81,93 @@ def main():
         if line[0] == 'GROUP':
             group = Group(line)
 
-    i_freelist = [0 for i in range(group.total_inodes)]     # inode bitmap
-    b_freelist = [0 for i in range(group.total_blocks)]     # block bitmap
+    i_freelist = []     # inode bitmap (a list of IFREE inode numbers)
+    b_freelist = []     # block bitmap (a list of BFREE block numbers)
     
     for line in fs_data:
         if line[0] == 'IFREE':
-            i_freelist[int(line[1]) - 1] = 1
+            i_freelist.append(int(line[1]))
         if line[0] == 'BFREE':
-            b_freelist[int(line[1])] = 1            # ????????
+            b_freelist.append(int(line[1]))           # ????????
         if line[0] == 'INODE':
             inodes[int(line[1])] = Inode(line)
         if line[0] == 'DIRENT':
             dirents.append(Dirent(line))
 
 
+    
+
+    # check inodes
+    for i in range(1,group.total_inodes+1):
+        if i not in inodes or inodes[i].file_type is '0':
+            if(i >= sb.first_inode and (i not in i_freelist)):
+                print("UNALLOCATED INODE %d NOT ON FREELIST" % i)
+                error_count += 1
+        else:
+            if(i in i_freelist):
+                print("ALLOCATED INODE %d ON FREELIST" % i)
+                error_count += 1
+
+    # check dirents
+    ref_count = {}
+    parent_array = {}
+    for i in range(1,group.total_inodes+1):
+        if i not in inodes or inodes[i].file_type != 'd':
+            continue
+        parent_i = inodes[i].i_number
+        for d in dirents:
+            child_i = d.file_inode
+            child_name = d.name
+            if parent_i != d.parent_inode:
+                continue
+            if child_i < 1 or child_i > sb.total_inodes:
+                print("DIRECTORY INODE %d NAME %s INVALID INODE %d" % (parent_i, child_name, child_i))
+                error_count += 1
+            if child_i in i_freelist:
+                print("DIRECTORY INODE %d NAME %s UNALLOCATED INODE %d" % (parent_i, child_name, child_i))
+                error_count += 1
+            if child_name == "'.'" and child_i != parent_i:
+                print("DIRECTORY INODE %d NAME '.' LINK TO INODE %d SHOULD BE %d" % (parent_i, child_i, parent_i))
+                error_count += 1
+            if child_name != "'.'" and child_name != "'..'":
+                parent_array[child_i] = parent_i
+    parent_array[2] = 2
+    
+    for d in dirents:
+        child_i = d.file_inode
+        child_name = d.name
+        if child_i not in ref_count:
+            ref_count[child_i] = 1
+        else:
+            ref_count[child_i] += 1
+
+                
+    for i in range(1,group.total_inodes+1):
+        if i not in inodes:
+            continue
+        parent_i = inodes[i].i_number
+        if parent_i not in ref_count and inodes[i].link_count != 0:
+            print("INODE %d HAS 0 LINKS BUT LINKCOUNT IS %d" % (parent_i, inodes[i].link_count))
+            error_count += 1
+        elif ref_count[parent_i] != inodes[i].link_count:
+            print("INODE %d HAS %d LINKS BUT LINKCOUNT IS %d" % (parent_i, ref_count[parent_i], inodes[i].link_count))
+            error_count += 1
+        if inodes[i].file_type is not 'd':
+            continue
+        for d in dirents:
+            if parent_i != d.parent_inode:
+                continue
+            child_i = d.file_inode
+            child_name = d.name
+            if child_name == "'..'" and child_i != parent_array[parent_i]:
+                print("DIRECTORY INODE %d NAME '..' LINK TO INODE %d SHOULD BE %d" % (parent_i, child_i, parent_array[parent_i]))
+                error_count += 1
+
 
     # TO-DO: determine exit code 
-
-    # Block consistency
-    for i in inodes:
-        
-
+    if error_count:
+        exit(2)
+    exit(0)
     
 if __name__ == '__main__':
     main()
