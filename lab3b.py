@@ -34,7 +34,7 @@ class Inode:
             self.i_number = int(info_list[1])
             self.file_type = info_list[2]
             self.link_count = int(info_list[6])
-            self.file_size = int(info_list[10])
+             self.file_size = int(info_list[10])
             self.n_blocks = int(info_list[11])
 
 class Dirent:
@@ -92,6 +92,9 @@ def main():
 
     # TO-DO: determine exit code 
 
+    # Block consistency
+    for i in inodes:
+        
 
     
 if __name__ == '__main__':
