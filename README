@@ -1,0 +1,11 @@
+NAME: Di Wu,Jingnong Qu
+EMAIL: xiaowu200031@gmail.com,andrewqu2000@g.ucla.edu
+ID: 205117980,805126509
+
+File descriptions:
+lab3b.py: a python source 
+Makefile: the file that builds everything. The Makefile includes a default target that builds the lab3a program, a dist target that generates the submission file, and a clean target that cleans up. 
+README: this file, an introduction of our lab 3A submission.
+
+References:
+https://stackoverflow.com/questions/12905999/python-dict-how-to-create-key-or-append-an-element-to-key
