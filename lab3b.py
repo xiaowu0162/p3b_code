@@ -54,6 +54,7 @@ class Dirent:
         
 
 def main():
+    error_count = 0
     # parse arguments
     args = sys.argv
     if len(args) is not 2:
@@ -80,22 +81,38 @@ def main():
         if line[0] == 'GROUP':
             group = Group(line)
 
-    i_freelist = [0 for i in range(group.total_inodes)]     # inode bitmap
-    b_freelist = [0 for i in range(group.total_blocks)]     # block bitmap
+    i_freelist = []     # inode bitmap (a list of IFREE inode numbers)
+    b_freelist = []     # block bitmap (a list of BFREE block numbers)
     
     for line in fs_data:
         if line[0] == 'IFREE':
-            i_freelist[int(line[1]) - 1] = 1
+            i_freelist.append(int(line[1]))
         if line[0] == 'BFREE':
-            b_freelist[int(line[1])] = 1            # ????????
+            b_freelist.append(int(line[1]))           # ????????
         if line[0] == 'INODE':
             inodes[int(line[1])] = Inode(line)
         if line[0] == 'DIRENT':
             dirents.append(Dirent(line))
 
 
-    # TO-DO: determine exit code 
+    
 
+    # check inodes
+    for i in range(1,group.total_inodes+1):
+        if i not in inodes or inodes[i].file_type is '0':
+            if(i >= sb.first_inode and (i not in i_freelist)):
+                print("UNALLOCATED INODE %d NOT ON FREELIST" % i)
+                error_count += 1
+        else:
+            if(i in i_freelist):
+                print("ALLOCATED INODE %d ON FREELIST" % i)
+                error_count += 1
+    
+
+    # TO-DO: determine exit code 
+    if error_count:
+        exit(2)
+    exit(0)
 
     
 if __name__ == '__main__':
